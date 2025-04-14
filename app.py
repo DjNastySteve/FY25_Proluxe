@@ -26,25 +26,26 @@ def load_data():
 
 df = load_data()
 
-budgets = {{
+# Set known budgets
+budgets = {
     "Cole": 3769351.32,
     "Jake": 3027353.02,
     "All": 6796704.34
-}}
+}
 
-st.title("📈 FY25 Sales & Budget Performance Dashboard")
-
-territory = st.sidebar.radio("Filter by Sales Manager", ["All", "Cole", "Jake"])
+# Sidebar manager filter
+territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake"])
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 
-# KPIs
+# KPI Metrics
 total_sales = df_filtered["Current Sales"].sum()
 budget = budgets[territory]
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
+total_customers = df_filtered["Customer Name"].nunique()
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.metric("📦 Total Customers", f"{df_filtered['Customer Name'].nunique():,}")
+    st.metric("📦 Customers", f"{total_customers:,}")
 with col2:
     st.metric("💰 FY25 Sales", f"${total_sales:,.0f}")
 with col3:
@@ -52,25 +53,30 @@ with col3:
 with col4:
     st.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
-# Chart: Sales by Rep
-st.subheader("💹 Total Sales by Manager")
-sales_by_rep = df.groupby("Rep Name")["Current Sales"].sum().reset_index()
-sales_by_rep["Current Sales"] = sales_by_rep["Current Sales"].astype(float)
-st.bar_chart(sales_by_rep.set_index("Rep Name"))
+# Section: Agency-Level Sales Chart
+if "Agency" in df.columns:
+    st.subheader("🏢 Sales by Agency")
+    agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False)
+    st.bar_chart(agency_sales)
 
-# Top 10 Customers
+# Section: Top/Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
-top_customers = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
-top_customers["Current Sales ($)"] = top_customers["Current Sales"].apply(lambda x: f"${x:,.0f}")
-st.table(top_customers[["Customer Name", "Current Sales ($)"]])
+top10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
+top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: f"${x:,.0f}")
+st.table(top10[["Customer Name", "Sales ($)"]])
 
-# Full Customer Table
+st.subheader("🚨 Bottom 10 Customers by Sales")
+bottom10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values().head(10).reset_index()
+bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: f"${x:,.0f}")
+st.table(bottom10[["Customer Name", "Sales ($)"]])
+
+# Section: Full Sales Table
 st.subheader("📋 Customer-Level Sales Data")
 table_df = df_filtered[["Customer Name", "Sales Rep", "Rep Name", "Current Sales"]].dropna()
 table_df = table_df.sort_values("Current Sales", ascending=False)
 table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: f"${x:,.0f}")
 st.dataframe(table_df, use_container_width=True)
 
-# Export Option
-csv = df_filtered.to_csv(index=False)
-st.download_button("⬇️ Export Filtered Data as CSV", csv, "Filtered_FY25_Sales.csv", "text/csv")
+# Export CSV Button
+csv_export = df_filtered.to_csv(index=False)
+st.download_button("⬇️ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
