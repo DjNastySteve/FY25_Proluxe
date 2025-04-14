@@ -26,40 +26,37 @@ def load_data():
 
 df = load_data()
 
-# Set known budgets
+# Known budgets
 budgets = {
     "Cole": 3769351.32,
     "Jake": 3027353.02,
     "All": 6796704.34
 }
 
-# Sidebar manager filter
+st.title("📈 FY25 Sales & Budget Performance Dashboard")
+
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake"])
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 
-# KPI Metrics
+# KPIs
 total_sales = df_filtered["Current Sales"].sum()
-budget = budgets[territory]
+budget = budgets.get(territory, 0)
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
 total_customers = df_filtered["Customer Name"].nunique()
 
 col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.metric("📦 Customers", f"{total_customers:,}")
-with col2:
-    st.metric("💰 FY25 Sales", f"${total_sales:,.0f}")
-with col3:
-    st.metric("🎯 FY25 Budget", f"${budget:,.0f}")
-with col4:
-    st.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
+col1.metric("📦 Customers", f"{total_customers:,}")
+col2.metric("💰 FY25 Sales", f"${total_sales:,.0f}")
+col3.metric("🎯 FY25 Budget", f"${budget:,.0f}")
+col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
-# Section: Agency-Level Sales Chart
+# Agency-Level Sales
 if "Agency" in df.columns:
     st.subheader("🏢 Sales by Agency")
     agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False)
     st.bar_chart(agency_sales)
 
-# Section: Top/Bottom Customers
+# Top & Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
 top10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
 top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: f"${x:,.0f}")
@@ -70,13 +67,13 @@ bottom10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_valu
 bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: f"${x:,.0f}")
 st.table(bottom10[["Customer Name", "Sales ($)"]])
 
-# Section: Full Sales Table
+# Customer-Level Table
 st.subheader("📋 Customer-Level Sales Data")
 table_df = df_filtered[["Customer Name", "Sales Rep", "Rep Name", "Current Sales"]].dropna()
 table_df = table_df.sort_values("Current Sales", ascending=False)
 table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: f"${x:,.0f}")
 st.dataframe(table_df, use_container_width=True)
 
-# Export CSV Button
+# Export
 csv_export = df_filtered.to_csv(index=False)
 st.download_button("⬇️ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
