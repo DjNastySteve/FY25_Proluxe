@@ -42,7 +42,7 @@ with col2:
         total_sales = pd.to_numeric(df["Current Sales"], errors="coerce").sum()
         st.metric("💰 Total Current Sales", f"${total_sales:,.0f}")
 with col3:
-    st.metric("🧍 Sales Reps Included", f"{df['Rep Name'].nunique()}")
+    st.metric("🧑‍💼 Sales Manager(s)", f"{df['Rep Name'].nunique()}")
 
 # Bar Chart: Sales by Rep
 if "Current Sales" in df.columns and "Rep Name" in df.columns:
