@@ -49,7 +49,16 @@ agency_budget_mapping = {
 }
 
 # UI toggles
-st.title("📈 Proluxe Sales Dashboard")
+
+st.markdown(
+    "<h1 style='font-size: 36px; color: #00c3ff; font-weight: 700;'>📊 Proluxe Sales Dashboard</h1>",
+    unsafe_allow_html=True
+)
+
+# Display active view mode with a banner
+banner = f"📅 <b>Now Viewing:</b> {'<span style=color:#00FFAA>Month-To-Date</span>' if view_option == 'MTD' else '<span style=color:#FFD700>Year-To-Date</span>'} Performance"
+st.markdown(f"<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>{banner}</div>", unsafe_allow_html=True)
+
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
@@ -65,10 +74,7 @@ selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agenci
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
-
-
-
-# KPI Cards (rendered once after filtering)
+# KPI Cards
 total_sales = df_filtered["Current Sales"].sum()
 budget = agency_budget_mapping.get(selected_agency, 0) if selected_agency != "All" else budgets.get(territory, 0)
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
@@ -80,6 +86,8 @@ col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
 col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
 col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
+
+# Dynamic Budget Calculation
 if selected_agency != "All":
     budget = agency_budget_mapping.get(selected_agency, 0)
 else:
@@ -88,6 +96,12 @@ else:
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
 total_customers = df_filtered["Customer Name"].nunique()
 
+# KPI Cards
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("📦 Customers", f"{total_customers:,}")
+col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
+col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
+col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
 # Agency Sales Chart
 if "Agency" in df_filtered.columns:
@@ -139,3 +153,26 @@ st.dataframe(table_df, use_container_width=True)
 # CSV Export
 csv_export = df_filtered.to_csv(index=False)
 st.download_button("⬇️ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
+
+
+# Agency Chart - Enhanced
+st.subheader("🏢 Agency Sales Comparison")
+import matplotlib.pyplot as plt
+
+agency_grouped = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values()
+fig, ax = plt.subplots(figsize=(10, 5))
+bars = ax.barh(agency_grouped.index, agency_grouped.values, color="#00c3ff")
+ax.bar_label(bars, fmt="%.0f", label_type="edge")
+ax.set_xlabel("Current Sales ($)")
+st.pyplot(fig)
+
+# Report Card
+if selected_agency != "All":
+    st.markdown(f"### 📝 {selected_agency} Performance Report")
+    st.success(f"{selected_agency} is currently at **{percent_to_goal:.1f}%** of their FY25 goal with **${total_sales:,.0f}** in sales.")
+
+# Export
+with st.expander("📁 Export Options"):
+    st.download_button("⬇ Download Filtered Data as CSV", df_filtered.to_csv(index=False), "Filtered_FY25_Sales.csv", "text/csv")
+    st.info("📌 Pro PDF & Image exports available in advanced version.")
+
