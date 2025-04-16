@@ -53,7 +53,10 @@ st.title("📈 Proluxe Sales Dashboard")
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
+
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
+df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+
 df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
 
 agencies = sorted(df["Agency"].dropna().unique())
