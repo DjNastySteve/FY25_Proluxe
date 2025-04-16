@@ -68,6 +68,35 @@ bottom10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_valu
 bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
 st.table(bottom10[["Customer Name", "Sales ($)"]])
 
+
+
+# Top and Bottom 10 Agencies by Sales Difference
+st.subheader("📊 Top & Bottom 10 Agencies by Sales Difference")
+
+# Map REP to Agency
+rep_agency_mapping = {
+    "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
+    "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
+    "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
+}
+df_filtered["Agency"] = df_filtered["Sales Rep"].map(rep_agency_mapping)
+
+agency_perf = df_filtered.groupby("Agency").agg({
+    "Current Sales": "sum",
+    "Prior Sales": "sum",
+    "Sales Difference": "sum"
+}).reset_index()
+
+top10_agencies = agency_perf.sort_values(by="Sales Difference", ascending=False).head(10)
+bottom10_agencies = agency_perf.sort_values(by="Sales Difference").head(10)
+
+st.markdown("### 🏅 Top 10 Agencies")
+st.table(top10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
+
+st.markdown("### ⚠️ Bottom 10 Agencies")
+st.table(bottom10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
+
+
 # Detailed Table
 st.subheader("📋 Customer-Level Sales Data")
 table_df = df_filtered[["Customer Name", "Sales Rep", "Rep Name", "Current Sales"]].dropna()
