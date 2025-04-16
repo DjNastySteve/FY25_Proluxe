@@ -75,3 +75,29 @@ col1.metric("📦 Customers", f"{total_customers:,}")
 col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
 col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
 col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
+
+
+# Top & Bottom Customers
+st.subheader("🏆 Top 10 Customers by Sales")
+top10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
+top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: f"${x:,.2f}")
+st.table(top10[["Customer Name", "Agency", "Sales ($)"]])
+
+st.subheader("🚨 Bottom 10 Customers by Sales")
+bottom10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values().head(10).reset_index()
+bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: f"${x:,.2f}")
+st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
+
+# Agency Bar Chart
+st.subheader("🏢 Agency Sales Comparison")
+agency_grouped = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values()
+fig, ax = plt.subplots(figsize=(10, 5))
+bars = ax.barh(agency_grouped.index, agency_grouped.values, color="#00c3ff")
+ax.bar_label(bars, fmt="%.0f", label_type="edge")
+ax.set_xlabel("Current Sales ($)")
+st.pyplot(fig)
+
+# Download filtered data
+st.subheader("📁 Export")
+csv_export = df_filtered.to_csv(index=False)
+st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
