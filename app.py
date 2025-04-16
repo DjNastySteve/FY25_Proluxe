@@ -7,6 +7,7 @@ st.set_page_config(page_title="FY25 Sales Dashboard", layout="wide")
 @st.cache_data
 def load_data():
     sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")
     sales_df.columns = sales_df.columns.str.strip()
     sales_df = sales_df.dropna(how="all")
 
@@ -26,6 +27,18 @@ def load_data():
     return merged_df
 
 df = load_data()
+
+# Select between YTD and MTD
+view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
+
+if view_option == "MTD":
+    mtd_df.columns = mtd_df.columns.str.strip()
+    mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+    mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+    df = mtd_df
+
 
 rep_agency_mapping = {
     "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
