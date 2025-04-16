@@ -42,7 +42,7 @@ budgets = {
     "All": 7538702.63
 }
 
-st.title("📈 FY25 Sales & Budget Performance Dashboard")
+st.title("📈 Proluxe Sales Dashboard")
 
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
@@ -82,12 +82,12 @@ if "Agency" in df.columns:
 # Top and Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
 top10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
-top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
+top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
 st.table(top10[["Customer Name", "Agency", "Sales ($)"]])
 
 st.subheader("🚨 Bottom 10 Customers by Sales")
 bottom10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values().head(10).reset_index()
-bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
+bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
 st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
 
 
@@ -123,7 +123,7 @@ st.table(bottom10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Dif
 st.subheader("📋 Customer-Level Sales Data")
 table_df = df_filtered[["Customer Name", "Sales Rep", "Agency", "Rep Name", "Current Sales"]].dropna()
 table_df = table_df.sort_values("Current Sales", ascending=False)
-table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
+table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
 st.dataframe(table_df, use_container_width=True)
 
 # CSV Export
