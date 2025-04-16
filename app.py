@@ -56,7 +56,11 @@ st.markdown(
 )
 
 # Display active view mode with a banner
-banner = f"📅 <b>Now Viewing:</b> {'<span style=color:#00FFAA>Month-To-Date</span>' if view_option == 'MTD' else '<span style=color:#FFD700>Year-To-Date</span>'} Performance"
+banner = (
+    "📅 <b>Now Viewing:</b> "
+    + ("<span style='color:#00FFAA;'>Month-To-Date</span>" if view_option == "MTD" else "<span style='color:#FFD700;'>Year-To-Date</span>")
+    + " Performance"
+)
 st.markdown(f"<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>{banner}</div>", unsafe_allow_html=True)
 
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
