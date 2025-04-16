@@ -134,13 +134,14 @@ else:
     total_sales = df_filtered["Current Sales"].sum()
     budget = budgets.get(territory, 0)
     
-    # Dynamic Budget Calculation
-    if selected_agency != "All":
-    budget = agency_budget_mapping.get(selected_agency, 0)
-    else:
-    budget = budgets.get(territory, 0)
     
-    percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
+# Dynamic Budget Calculation
+if selected_agency != "All":
+    budget = agency_budget_mapping.get(selected_agency, 0)
+else:
+    budget = budgets.get(territory, 0)
+
+percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
     total_customers = df_filtered["Customer Name"].nunique()
     
     col1, col2, col3, col4 = st.columns(4)
