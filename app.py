@@ -18,8 +18,8 @@ def load_data():
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
 
     rep_map = pd.DataFrame({
-        "REP": cole_reps + jake_reps + ['Home'],
-        "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+    "REP": cole_reps + jake_reps + ['Home'],
+    "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
     })
 
     sales_df["Sales Rep"] = sales_df["Sales Rep"].astype(str)
