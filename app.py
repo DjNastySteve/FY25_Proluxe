@@ -69,8 +69,8 @@ total_customers = df_filtered["Customer Name"].nunique()
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("📦 Customers", "{:,}".format(total_customers))
-col2.metric("💰 FY25 Sales", "${:,.0f}".format(total_sales))
-col3.metric("🎯 FY25 Budget", "${:,.0f}".format(budget))
+col2.metric("💰 FY25 Sales", "${:,.2f}".format(total_sales))
+col3.metric("🎯 FY25 Budget", "${:,.2f}".format(budget))
 col4.metric("📊 % to Goal", "{:.1f}%".format(percent_to_goal))
 
 # Agency Sales Chart
@@ -113,9 +113,15 @@ top10_agencies = agency_perf.sort_values(by="Sales Difference", ascending=False)
 bottom10_agencies = agency_perf.sort_values(by="Sales Difference").head(10)
 
 st.markdown("### 🏅 Top 10 Agencies")
+top10_agencies["Current Sales"] = top10_agencies["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+top10_agencies["Prior Sales"] = top10_agencies["Prior Sales"].apply(lambda x: "${:,.2f}".format(x))
+top10_agencies["Sales Difference"] = top10_agencies["Sales Difference"].apply(lambda x: "${:,.2f}".format(x))
 st.table(top10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
 
 st.markdown("### ⚠️ Bottom 10 Agencies")
+bottom10_agencies["Current Sales"] = bottom10_agencies["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+bottom10_agencies["Prior Sales"] = bottom10_agencies["Prior Sales"].apply(lambda x: "${:,.2f}".format(x))
+bottom10_agencies["Sales Difference"] = bottom10_agencies["Sales Difference"].apply(lambda x: "${:,.2f}".format(x))
 st.table(bottom10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
 
 
