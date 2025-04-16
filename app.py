@@ -27,6 +27,14 @@ def load_data():
 
 df = load_data()
 
+rep_agency_mapping = {
+    "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
+    "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
+    "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
+}
+df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+
+
 budgets = {
     "Cole": 3769351.32,
     "Jake": 3027353.02,
@@ -37,7 +45,12 @@ budgets = {
 st.title("📈 FY25 Sales & Budget Performance Dashboard")
 
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
+
+agencies = sorted(df["Agency"].dropna().unique())
+selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
+df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
+
 
 # KPI Cards
 total_sales = df_filtered["Current Sales"].sum()
@@ -59,14 +72,16 @@ if "Agency" in df.columns:
 
 # Top and Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
-top10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
+top10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum()
+.sort_values(ascending=False).head(10).reset_index()
 top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
-st.table(top10[["Customer Name", "Sales ($)"]])
+st.table(top10[["Customer Name", "Agency", "Sales ($)"]])
 
 st.subheader("🚨 Bottom 10 Customers by Sales")
-bottom10 = df_filtered.groupby("Customer Name")["Current Sales"].sum().sort_values().head(10).reset_index()
+bottom10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum()
+.sort_values().head(10).reset_index()
 bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
-st.table(bottom10[["Customer Name", "Sales ($)"]])
+st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
 
 
 
@@ -99,7 +114,7 @@ st.table(bottom10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Dif
 
 # Detailed Table
 st.subheader("📋 Customer-Level Sales Data")
-table_df = df_filtered[["Customer Name", "Sales Rep", "Rep Name", "Current Sales"]].dropna()
+table_df = df_filtered[["Customer Name", "Sales Rep", "Agency", "Rep Name", "Current Sales"]].dropna()
 table_df = table_df.sort_values("Current Sales", ascending=False)
 table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: "${:,.0f}".format(x))
 st.dataframe(table_df, use_container_width=True)
