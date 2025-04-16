@@ -10,6 +10,32 @@ def load_data():
     sales_df.columns = sales_df.columns.str.strip()
     sales_df = sales_df.dropna(how="all")
 
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")
+    mtd_df.columns = mtd_df.columns.str.strip()
+    mtd_df = mtd_df.dropna(how="all")
+
+    cole_reps = ['609', '617', '621', '623', '625', '626']
+    jake_reps = ['601', '614', '616', '619', '620', '622', '627']
+
+    rep_map = pd.DataFrame({
+        "REP": cole_reps + jake_reps + ['Home'],
+        "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+    })
+
+    sales_df["Sales Rep"] = sales_df["Sales Rep"].astype(str)
+    rep_map["REP"] = rep_map["REP"].astype(str)
+    sales_df = sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    sales_df["Current Sales"] = pd.to_numeric(sales_df["Current Sales"], errors="coerce").fillna(0)
+
+    mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
+
+    return sales_df, mtd_df, rep_map
+    sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+    sales_df.columns = sales_df.columns.str.strip()
+    sales_df = sales_df.dropna(how="all")
+
     mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")  # MTD loaded inside cache block only
     mtd_df.columns = mtd_df.columns.str.strip()
     mtd_df = mtd_df if view_option == "MTD" else sales_df
