@@ -23,6 +23,11 @@ def load_data():
         df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
         df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
 
+# Ensure 'Home' group exists if targeting Cole and Jake
+if "Home" not in df["Rep Name"].unique():
+    df.loc[df["Rep Name"].isin(["Cole", "Jake"]), "Rep Name"] = "Home"
+
+
     return sales_df, mtd_df, rep_map
 
 # Load data
@@ -80,6 +85,11 @@ st.markdown(banner_html, unsafe_allow_html=True)
 
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
 df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+
+# Ensure 'Home' group exists if targeting Cole and Jake
+if "Home" not in df["Rep Name"].unique():
+    df.loc[df["Rep Name"].isin(["Cole", "Jake"]), "Rep Name"] = "Home"
+
 
 df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
 
