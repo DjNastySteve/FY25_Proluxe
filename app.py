@@ -65,7 +65,10 @@ selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agenci
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
-# KPI Cards
+
+
+
+# KPI Cards (rendered once after filtering)
 total_sales = df_filtered["Current Sales"].sum()
 budget = agency_budget_mapping.get(selected_agency, 0) if selected_agency != "All" else budgets.get(territory, 0)
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
@@ -77,8 +80,6 @@ col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
 col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
 col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
-
-# Dynamic Budget Calculation
 if selected_agency != "All":
     budget = agency_budget_mapping.get(selected_agency, 0)
 else:
@@ -87,12 +88,6 @@ else:
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
 total_customers = df_filtered["Customer Name"].nunique()
 
-# KPI Cards
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("📦 Customers", f"{total_customers:,}")
-col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
-col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
-col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
 
 # Agency Sales Chart
 if "Agency" in df_filtered.columns:
