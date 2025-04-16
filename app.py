@@ -10,9 +10,10 @@ def load_data():
     sales_df.columns = sales_df.columns.str.strip()
     sales_df = sales_df.dropna(how="all")
 
-    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")  # MTD loaded inside cache block only
     mtd_df.columns = mtd_df.columns.str.strip()
-    mtd_df = mtd_df if view_option == "MTD" else sales_df.dropna(how="all")
+    mtd_df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map.dropna(how="all")
 
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
@@ -30,12 +31,13 @@ def load_data():
 
     # Preprocessing MTD
     mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
-    mtd_df = mtd_df if view_option == "MTD" else sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
     mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
 
     return sales_df, mtd_df, rep_map
     sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
-    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")  # MTD loaded inside cache block only
     sales_df.columns = sales_df.columns.str.strip()
     sales_df = sales_df.dropna(how="all")
 
@@ -63,9 +65,11 @@ if view_option == "MTD":
     mtd_df.columns = mtd_df.columns.str.strip()
     mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
     mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
-    mtd_df = mtd_df if view_option == "MTD" else sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
     mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
     df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map
 
 
 rep_agency_mapping = {
