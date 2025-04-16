@@ -88,11 +88,27 @@ def load_data():
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 
 if view_option == "MTD":
-    df = mtd_df.copy()
-    df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+    mtd_df.columns = mtd_df.columns.str.strip()
+    mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+    mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+    df = mtd_df
 else:
-    df = sales_df.copy()
-    df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)"] = df["Sales Rep"].map(rep_agency_mapping)
+    df = sales_df
+    df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+    rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+    df = mtd_df if view_option == "MTD" else sales_df
+    rep_map = rep_map
+    
+    
+    rep_agency_mapping = {
+    "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
+    "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
+    "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
+    }
+    df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
     
     
     budgets = {
@@ -119,6 +135,7 @@ else:
     budget = budgets.get(territory, 0)
     
     
+
 # Dynamic Budget Calculation
 if selected_agency != "All":
     budget = agency_budget_mapping.get(selected_agency, 0)
@@ -162,7 +179,7 @@ percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
     "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
     "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
     }
-    df_filtered["Agency"] = df_filtered["Sales Rep"].map(rep_agency_mapping)
+    df_filtered.loc[:, "Agency"] = df_filtered["Sales Rep"].map(rep_agency_mapping)
     
     agency_perf = df_filtered.groupby("Agency").agg({
     "Current Sales": "sum",
