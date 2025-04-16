@@ -51,10 +51,19 @@ selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agenci
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
+agency_budget_mapping = {'New Era': 890397.95, 'Phoenix': 712318.36, 'Morris-Tait': 831038.09, 'Access': 237439.45, 'Synapse': 237439.45, 'NuTech': 474878.91, 'Connected Sales': 356159.18, 'Frontline': 118719.73, 'ProAct': 385839.11, 'PSG': 474878.91, 'LK': 1187197.26, 'Sound-Tech': 890397.95, 'Audio Americas': 0}
+
 
 # KPI Cards
 total_sales = df_filtered["Current Sales"].sum()
 budget = budgets.get(territory, 0)
+
+# Dynamic Budget Calculation
+if selected_agency != "All":
+    budget = agency_budget_mapping.get(selected_agency, 0)
+else:
+    budget = budgets.get(territory, 0)
+
 percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
 total_customers = df_filtered["Customer Name"].nunique()
 
