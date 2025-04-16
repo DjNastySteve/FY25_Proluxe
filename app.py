@@ -85,13 +85,18 @@ def load_data():
     sales_df, mtd_df, rep_map = load_data()
 
     # Select between YTD and MTD
-    view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
+view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 
-    if view_option == "MTD":
+if view_option == "MTD":
     mtd_df.columns = mtd_df.columns.str.strip()
     mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
     mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
-    mtd_df = mtd_df if view_option == "MTD" else sales_df
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+    df = mtd_df
+else:
+    df = sales_df
+    df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
     rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
     mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
     df = mtd_df if view_option == "MTD" else sales_df
