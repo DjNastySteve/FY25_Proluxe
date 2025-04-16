@@ -1,5 +1,9 @@
 
 import streamlit as st
+
+# EARLY declaration of view_option to prevent NameError
+territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
+
 import pandas as pd
 
 st.set_page_config(page_title="Proluxe Sales Dashboard", layout="wide")
@@ -65,7 +69,6 @@ else:
 
 st.markdown(banner_html, unsafe_allow_html=True)
 
-view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
 
