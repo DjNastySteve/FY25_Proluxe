@@ -55,20 +55,26 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Display active view mode with a banner
 
-st.markdown(f"<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>{banner}</div>", unsafe_allow_html=True)
+# Display active view mode with a banner
+if view_option == "MTD":
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
+else:
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
+
+st.markdown(banner_html, unsafe_allow_html=True)
 
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
+
 # Display active view mode with a banner
-banner = (
-    "📅 <b>Now Viewing:</b> "
-    + ("<span style='color:#00FFAA;'>Month-To-Date</span>" if view_option == "MTD" else "<span style='color:#FFD700;'>Year-To-Date</span>")
-    + " Performance"
-)
-st.markdown(f"<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>{banner}</div>", unsafe_allow_html=True)
+if view_option == "MTD":
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
+else:
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
+
+st.markdown(banner_html, unsafe_allow_html=True)
 
 
 
