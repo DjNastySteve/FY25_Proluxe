@@ -4,6 +4,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Proluxe Sales Dashboard", layout="wide")
 
+
 @st.cache_data
 def load_data():
     sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
@@ -21,14 +22,9 @@ def load_data():
         df.columns = df.columns.str.strip()
         df["Sales Rep"] = df["Sales Rep"].astype(str)
         df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
-        df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
-
-# Ensure 'Home' group exists if targeting Cole and Jake
-if "Home" not in df["Rep Name"].unique():
-    df.loc[df["Rep Name"].isin(["Cole", "Jake"]), "Rep Name"] = "Home"
-
 
     return sales_df, mtd_df, rep_map
+
 
 # Load data
 sales_df, mtd_df, rep_map = load_data()
