@@ -32,6 +32,7 @@ def load_data():
 sales_df, mtd_df, rep_map = load_data()
 
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
+df["Sales Rep"] = df["Sales Rep"].astype(str)
 df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
 
 rep_agency_mapping = {
@@ -101,3 +102,5 @@ st.pyplot(fig)
 st.subheader("📁 Export")
 csv_export = df_filtered.to_csv(index=False)
 st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
+
+# st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
