@@ -11,7 +11,7 @@ territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake"
 
 @st.cache_data
 def load_data():
-sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+    sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
 mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Monthly Goal Sales Data")
 
 cole_reps = ['609', '617', '621', '623', '625', '626']
