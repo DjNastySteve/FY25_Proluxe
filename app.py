@@ -1,112 +1,298 @@
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Proluxe Sales Dashboard", layout="wide")
-
-# Declare view/territory filters early
-view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
-territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
+st.set_page_config(page_title="FY25 Sales Dashboard", layout="wide")
 
 @st.cache_data
-def load_data(file):
-    sales_df = pd.read_excel(file, sheet_name="Sales Data YTD")
-    mtd_df = pd.read_excel(file, sheet_name="Monthly Goal Sales Data")
+def load_data():
+    sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+    sales_df.columns = sales_df.columns.str.strip()
+    sales_df = sales_df.dropna(how="all")
+
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")
+    mtd_df.columns = mtd_df.columns.str.strip()
+    mtd_df = mtd_df.dropna(how="all")
 
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
 
     rep_map = pd.DataFrame({
-        "REP": cole_reps + jake_reps + ['Home'],
-        "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+    "REP": cole_reps + jake_reps + ['Home'],
+    "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
     })
 
-    for df in [sales_df, mtd_df]:
-        df.columns = df.columns.str.strip()
-        df["Sales Rep"] = df["Sales Rep"].astype(str)
-        df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
+    sales_df["Sales Rep"] = sales_df["Sales Rep"].astype(str)
+    rep_map["REP"] = rep_map["REP"].astype(str)
+    sales_df = sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    sales_df["Current Sales"] = pd.to_numeric(sales_df["Current Sales"], errors="coerce").fillna(0)
+
+    mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
 
     return sales_df, mtd_df, rep_map
+sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+sales_df.columns = sales_df.columns.str.strip()
+sales_df = sales_df.dropna(how="all")
 
-sales_df, mtd_df, rep_map = load_data("FY25.PLX.xlsx")
+mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")  # MTD loaded inside cache block only
+mtd_df.columns = mtd_df.columns.str.strip()
+mtd_df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map.dropna(how="all")
 
-sales_df, mtd_df, rep_map = load_data("FY25.PLX.xlsx")
+cole_reps = ['609', '617', '621', '623', '625', '626']
+jake_reps = ['601', '614', '616', '619', '620', '622', '627']
 
-df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
-df["Sales Rep"] = df["Sales Rep"].astype(str)
-df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+rep_map = pd.DataFrame({
+"REP": cole_reps + jake_reps + ['Home'],
+"Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+})
 
-rep_agency_mapping = {
-"601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
-"617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
-"623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
-}
+# Preprocessing YTD
+sales_df["Sales Rep"] = sales_df["Sales Rep"].astype(str)
+rep_map["REP"] = rep_map["REP"].astype(str)
+sales_df = sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+sales_df["Current Sales"] = pd.to_numeric(sales_df["Current Sales"], errors="coerce").fillna(0)
 
-budgets = {
-"Cole": 3769351.32, "Jake": 3027353.02, "Proluxe": 743998.29, "All": 7538702.63
-}
-agency_budget_mapping = {
-"New Era": 890397.95, "Phoenix": 712318.36, "Morris-Tait": 831038.09, "Access": 237439.45,
-"Synapse": 237439.45, "NuTech": 474878.91, "Connected Sales": 356159.18, "Frontline": 118719.73,
-"ProAct": 385839.11, "PSG": 474878.91, "LK": 1187197.26, "Sound-Tech": 890397.95, "Audio Americas": 0
-}
+# Preprocessing MTD
+mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+mtd_df = mtd_df if view_option == "MTD" else sales_df
+rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
 
-df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+return sales_df, mtd_df, rep_map
+sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
+mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="MTD ")  # MTD loaded inside cache block only
+sales_df.columns = sales_df.columns.str.strip()
+sales_df = sales_df.dropna(how="all")
 
+cole_reps = ['609', '617', '621', '623', '625', '626']
+jake_reps = ['601', '614', '616', '619', '620', '622', '627']
 
-agencies = sorted(df["Agency"].dropna().unique())
-selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
+rep_map = pd.DataFrame({
+"REP": cole_reps + jake_reps + ['Home'],
+"Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+})
 
-df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
-df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
+sales_df["Sales Rep"] = sales_df["Sales Rep"].astype(str)
+rep_map["REP"] = rep_map["REP"].astype(str)
+merged_df = sales_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
 
+merged_df["Current Sales"] = pd.to_numeric(merged_df["Current Sales"], errors="coerce").fillna(0)
+return merged_df
 
+sales_df, mtd_df, rep_map = load_data()
+
+# Select between YTD and MTD
+view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 
 if view_option == "MTD":
-    banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#f3b120; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#f3b120;'>Month-To-Date</span> Performance</div>"
-else:
-    banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#f3b120; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#f3b120;'>Year-To-Date</span> Performance</div>"
-st.markdown(banner_html, unsafe_allow_html=True)
+    mtd_df.columns = mtd_df.columns.str.strip()
+    mtd_df["Sales Rep"] = mtd_df["Sales Rep"].astype(str)
+    mtd_df["Current Sales"] = pd.to_numeric(mtd_df["Current Sales"], errors="coerce").fillna(0)
+    mtd_df = mtd_df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+    mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+    df = mtd_df
+    else:
+        df = sales_df
+        df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+        rep_map = rep_map.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+        mtd_df["Agency"] = mtd_df["Sales Rep"].map(rep_agency_mapping)
+        df = mtd_df if view_option == "MTD" else sales_df
+        rep_map = rep_map
+
+
+        rep_agency_mapping = {
+        "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
+        "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
+        "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
+        }
+        df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
+
+
+        budgets = {
+        "Cole": 3769351.32,
+        "Jake": 3027353.02,
+        "Proluxe": 743998.29,
+        "All": 7538702.63
+        }
+
+        st.title("📈 Proluxe Sales Dashboard")
+
+        territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
+
+        agencies = sorted(df["Agency"].dropna().unique())
+        selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
+        df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
+        df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
+
+        agency_budget_mapping = {'New Era': 890397.95, 'Phoenix': 712318.36, 'Morris-Tait': 831038.09, 'Access': 237439.45, 'Synapse': 237439.45, 'NuTech': 474878.91, 'Connected Sales': 356159.18, 'Frontline': 118719.73, 'ProAct': 385839.11, 'PSG': 474878.91, 'LK': 1187197.26, 'Sound-Tech': 890397.95, 'Audio Americas': 0}
+
+
+        # KPI Cards
+        total_sales = df_filtered["Current Sales"].sum()
+        budget = budgets.get(territory, 0)
 
 
 
-total_sales = df_filtered["Current Sales"].sum()
-budget = agency_budget_mapping.get(selected_agency, 0) if selected_agency != "All" else budgets.get(territory, 0)
-percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
-total_customers = df_filtered["Customer Name"].nunique()
+        # Dynamic Budget Calculation
+        if selected_agency != "All":
+            budget = agency_budget_mapping.get(selected_agency, 0)
+            else:
+                budget = budgets.get(territory, 0)
 
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("📦 Customers", f"{total_customers:,}")
-col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
-col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
-col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
-progress_color = "#f3b120"
-st.markdown(f"<div style='height: 18px; background-color: #eee; border-radius: 10px; overflow: hidden;'><div style='width: {percent_to_goal:.1f}%; background-color: {progress_color}; height: 100%;'></div></div>", unsafe_allow_html=True)
+                percent_to_goal = (total_sales / budget * 100) if budget > 0 else 0
+                total_customers = df_filtered["Customer Name"].nunique()
 
-# Top & Bottom Customers
-st.subheader("🏆 Top 10 Customers by Sales")
-top10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
-top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: f"${x:,.2f}")
-st.table(top10[["Customer Name", "Agency", "Sales ($)"]])
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("📦 Customers", "{:,}".format(total_customers))
+                col2.metric("💰 FY25 Sales", "${:,.2f}".format(total_sales))
+                col3.metric("🎯 FY25 Budget", "${:,.2f}".format(budget))
+                col4.metric("📊 % to Goal", "{:.1f}%".format(percent_to_goal))
 
-st.subheader("🚨 Bottom 10 Customers by Sales")
-bottom10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values().head(10).reset_index()
-bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: f"${x:,.2f}")
-st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
+                # Agency Sales Chart
+                if "Agency" in df.columns:
+                    st.subheader("🏢 Sales by Agency")
+                    agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False)
+                    st.bar_chart(agency_sales)
 
-# Agency Bar Chart
-st.subheader("🏢 Agency Sales Comparison")
-agency_grouped = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values()
-fig, ax = plt.subplots(figsize=(10, 5))
-bars = ax.barh(agency_grouped.index, agency_grouped.values, color="#f3b120")
-ax.bar_label(bars, fmt="%.0f", label_type="edge")
-ax.set_xlabel("Current Sales ($)")
-st.pyplot(fig)
+                    # Top and Bottom Customers
+                    st.subheader("🏆 Top 10 Customers by Sales")
+                    top10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
+                    top10["Sales ($)"] = top10["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    st.table(top10[["Customer Name", "Agency", "Sales ($)"]])
 
-# Download filtered data
-st.subheader("📁 Export")
-csv_export = df_filtered.to_csv(index=False)
-st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
+                    st.subheader("🚨 Bottom 10 Customers by Sales")
+                    bottom10 = df_filtered.groupby(["Customer Name", "Agency"])["Current Sales"].sum().sort_values().head(10).reset_index()
+                    bottom10["Sales ($)"] = bottom10["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
 
-# st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
+
+
+                    # Top and Bottom 10 Agencies by Sales Difference
+                    st.subheader("📊 Top & Bottom 10 Agencies by Sales Difference")
+
+                    # Map REP to Agency
+                    rep_agency_mapping = {
+                    "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
+                    "617": "NuTech", "619": "Connected Sales", "620": "Frontline", "621": "ProAct", "622": "PSG",
+                    "623": "LK", "625": "Sound-Tech", "626": "Audio Americas"
+                    }
+                    df_filtered.loc[:, "Agency"] = df_filtered["Sales Rep"].map(rep_agency_mapping)
+
+                    agency_perf = df_filtered.groupby("Agency").agg({
+                    "Current Sales": "sum",
+                    "Prior Sales": "sum",
+                    "Sales Difference": "sum"
+                    }).reset_index()
+
+                    top10_agencies = agency_perf.sort_values(by="Sales Difference", ascending=False).head(10)
+                    bottom10_agencies = agency_perf.sort_values(by="Sales Difference").head(10)
+
+                    st.markdown("### 🏅 Top 10 Agencies")
+                    top10_agencies["Current Sales"] = top10_agencies["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    top10_agencies["Prior Sales"] = top10_agencies["Prior Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    top10_agencies["Sales Difference"] = top10_agencies["Sales Difference"].apply(lambda x: "${:,.2f}".format(x))
+                    st.table(top10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
+
+                    st.markdown("### ⚠️ Bottom 10 Agencies")
+                    bottom10_agencies["Current Sales"] = bottom10_agencies["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    bottom10_agencies["Prior Sales"] = bottom10_agencies["Prior Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    bottom10_agencies["Sales Difference"] = bottom10_agencies["Sales Difference"].apply(lambda x: "${:,.2f}".format(x))
+                    st.table(bottom10_agencies[["Agency", "Current Sales", "Prior Sales", "Sales Difference"]])
+
+
+                    # Detailed Table
+                    st.subheader("📋 Customer-Level Sales Data")
+                    table_df = df_filtered[["Customer Name", "Sales Rep", "Agency", "Rep Name", "Current Sales"]].dropna()
+                    table_df = table_df.sort_values("Current Sales", ascending=False)
+                    table_df["Current Sales"] = table_df["Current Sales"].apply(lambda x: "${:,.2f}".format(x))
+                    st.dataframe(table_df, use_container_width=True)
+
+                    # CSV Export
+                    csv_export = df_filtered.to_csv(index=False)
+                    st.download_button("⬇️ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
+
+# Excel Export Logic
+st.sidebar.markdown("### 📤 Export Reports")
+rep_options = ["All"] + sorted(df["Sales Rep"].unique().tolist())
+selected_export_rep = st.sidebar.selectbox("Choose REP to Export", rep_options)
+if st.sidebar.button("📥 Export Excel Dashboard"):
+    from io import BytesIO
+    import zipfile
+    from openpyxl import Workbook
+    from openpyxl.chart import BarChart, Reference, PieChart
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    def generate_dashboard_excel(rep_df, rep):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Sales Rep Dashboard"
+        ws["A1"] = "Sales Rep Dashboard"
+        ws["A1"].font = Font(bold=True, size=14)
+        ws["A3"], ws["A4"], ws["A5"] = "Sales Rep:", "From:", "To:"
+        ws["B3"], ws["B4"], ws["B5"] = rep, "2025-01-01", "2025-12-31"
+        sales_by_year = {
+            "Goal": 890397.95,
+            "Current": rep_df["Current Sales"].sum(),
+            "1 Year Ago": 251632,
+            "2 Years Ago": 225000,
+        }
+        for idx, (label, value) in enumerate(sales_by_year.items(), start=7):
+            ws.cell(row=idx, column=1, value=label)
+            ws.cell(row=idx, column=2, value=value)
+            ws.cell(row=idx, column=2).number_format = '"$"#,##0'
+        bar_chart = BarChart()
+        bar_chart.title = "Sales by Year"
+        data = Reference(ws, min_col=2, min_row=6, max_row=10)
+        cats = Reference(ws, min_col=1, min_row=7, max_row=10)
+        bar_chart.add_data(data, titles_from_data=True)
+        bar_chart.set_categories(cats)
+        ws.add_chart(bar_chart, "D3")
+        ws["F7"], ws["G7"], ws["H7"] = "Current", "Prior", "%"
+        ws["F8"] = sales_by_year["Current"]
+        ws["G8"] = sales_by_year["1 Year Ago"]
+        ws["H8"] = sales_by_year["Current"] / sales_by_year["1 Year Ago"] - 1
+        ws["H8"].number_format = "0.0%"
+        top_customers = rep_df.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10)
+        for idx, (cust, val) in enumerate(top_customers.items(), start=13):
+            ws.cell(row=idx, column=5, value=cust)
+            ws.cell(row=idx, column=6, value=val)
+            ws.cell(row=idx, column=6).number_format = '"$"#,##0'
+            ws.cell(row=idx, column=7, value=val / sales_by_year["Current"])
+            ws.cell(row=idx, column=7).number_format = "0.0%"
+        rep_df["Product Category"] = rep_df["Category 1"]
+        top_categories = rep_df.groupby("Product Category")["Current Sales"].sum().sort_values(ascending=False).head(5)
+        for idx, (cat, val) in enumerate(top_categories.items(), start=25):
+            ws.cell(row=idx, column=1, value=cat)
+            ws.cell(row=idx, column=2, value=val)
+            ws.cell(row=idx, column=2).number_format = '"$"#,##0'
+        pie_chart = PieChart()
+        pie_chart.title = "Top Product Categories"
+        labels = Reference(ws, min_col=1, min_row=25, max_row=25 + len(top_categories) - 1)
+        data = Reference(ws, min_col=2, min_row=24, max_row=24 + len(top_categories))
+        pie_chart.add_data(data, titles_from_data=True)
+        pie_chart.set_categories(labels)
+        ws.add_chart(pie_chart, "D25")
+        for col in ws.columns:
+            max_len = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = max(max_len + 2, 15)
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_buffer.seek(0)
+        return excel_buffer
+
+    if selected_export_rep == "All":
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zipf:
+            for rep in df["Sales Rep"].unique():
+                rep_data = df[df["Sales Rep"] == rep]
+                buf = generate_dashboard_excel(rep_data, rep)
+                zipf.writestr(f"SalesRep_Dashboard_REP{rep}.xlsx", buf.read())
+        st.download_button("📦 Download All Dashboards (ZIP)", data=zip_buffer.getvalue(), file_name="All_REPs_Dashboards.zip")
+    else:
+        rep_data = df[df["Sales Rep"] == selected_export_rep]
+        excel_buf = generate_dashboard_excel(rep_data, selected_export_rep)
+        st.download_button("📥 Download REP Dashboard", data=excel_buf.getvalue(), file_name=f"SalesRep_Dashboard_REP{selected_export_rep}.xlsx")
