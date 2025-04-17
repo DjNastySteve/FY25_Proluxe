@@ -20,10 +20,10 @@ def load_data():
     # Rep to name mapping
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
+rep_map = pd.DataFrame({
     "REP": cole_reps + jake_reps + ['Home'],
     "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
 })
-
 # Apply Sales Manager filter
 if territory != "All":
     df_filtered = df[df["Rep Name"] == territory]
