@@ -23,6 +23,7 @@ def load_data():
 rep_map = pd.DataFrame({
     "REP": cole_reps + jake_reps + ['Home'],
     "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+    return sales_df, mtd_df, rep_map
 })
 # Apply Sales Manager filter
 if territory != "All":
@@ -41,7 +42,6 @@ if selected_agency != "All":
         df["Sales Rep"] = df["Sales Rep"].astype(str)
         df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
 
-    return sales_df, mtd_df, rep_map
 
 # Load data once
 sales_df, mtd_df, rep_map = load_data()
