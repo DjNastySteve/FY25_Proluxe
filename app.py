@@ -62,11 +62,13 @@ df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
 
+
 if view_option == "MTD":
-    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
+    banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#f3b120; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#f3b120;'>Month-To-Date</span> Performance</div>"
 else:
-    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
+    banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#f3b120; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#f3b120;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
+
 
 
 total_sales = df_filtered["Current Sales"].sum()
@@ -79,7 +81,8 @@ col1.metric("📦 Customers", f"{total_customers:,}")
 col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
 col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
 col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
-st.progress(min(int(percent_to_goal), 100))
+progress_color = "#f3b120"
+st.markdown(f"<div style='height: 18px; background-color: #eee; border-radius: 10px; overflow: hidden;'><div style='width: {percent_to_goal:.1f}%; background-color: {progress_color}; height: 100%;'></div></div>", unsafe_allow_html=True)
 
 # Top & Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
@@ -96,7 +99,7 @@ st.table(bottom10[["Customer Name", "Agency", "Sales ($)"]])
 st.subheader("🏢 Agency Sales Comparison")
 agency_grouped = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values()
 fig, ax = plt.subplots(figsize=(10, 5))
-bars = ax.barh(agency_grouped.index, agency_grouped.values, color="#00c3ff")
+bars = ax.barh(agency_grouped.index, agency_grouped.values, color="#f3b120")
 ax.bar_label(bars, fmt="%.0f", label_type="edge")
 ax.set_xlabel("Current Sales ($)")
 st.pyplot(fig)
