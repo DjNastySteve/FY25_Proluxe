@@ -21,6 +21,19 @@ def load_data():
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
     rep_map = pd.DataFrame({
+
+df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+
+# Apply Sales Manager filter
+if territory != "All":
+    df_filtered = df[df["Rep Name"] == territory]
+else:
+    df_filtered = df.copy()
+
+# Apply Agency filter
+if selected_agency != "All":
+    df_filtered = df_filtered[df_filtered["Agency"] == selected_agency]
+
         "REP": cole_reps + jake_reps + ['Home'],
         "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
     })
@@ -57,13 +70,11 @@ agencies = sorted(df["Agency"].dropna().unique())
 selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
 # Apply filters
-df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
-df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
 # Banner
 if view_option == "MTD":
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Month-To-Date</span> Performance</div>"
-else:
+# else:
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
 
