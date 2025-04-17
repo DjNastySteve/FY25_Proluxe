@@ -1,173 +1,4 @@
 
-from io import BytesIO
-import xlsxwriter
-
-
-from io import BytesIO
-import xlsxwriter
-
-
-from io import BytesIO
-import xlsxwriter
-
-
-from io import BytesIO
-import xlsxwriter
-
-
-from io import BytesIO
-import xlsxwriter
-
-def generate_agency_report(df, agency_name):
-    output = BytesIO()
-    workbook = None
-
-    # Clean up blanks
-    for col in ["Category 1", "Customer Name", "Sales Rep"]:
-        df[col] = df[col].replace("(Blanks)", pd.NA)
-
-    # Prep summary data
-    total_sales = df["Current Sales"].sum()
-    top_customers = df.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=False).head(10)
-    bottom_customers = df.groupby("Customer Name")["Current Sales"].sum().sort_values(ascending=True).head(10)
-    category_sales = df.groupby("Category 1")["Current Sales"].sum().sort_values(ascending=False)
-
-    growth = df.groupby("Customer Name")[["Current Sales", "Prior Sales"]].sum()
-    growth["$ Growth"] = growth["Current Sales"] - growth["Prior Sales"]
-    growth["% Growth"] = growth["$ Growth"] / growth["Prior Sales"].replace(0, pd.NA) * 100
-    top_growth_dollars = growth.sort_values("$ Growth", ascending=False).head(3)
-    top_growth_percent = growth[growth["% Growth"] > 0].sort_values("% Growth", ascending=False).head(3)
-    top_decline_dollars = growth.sort_values("$ Growth", ascending=True).head(3)
-
-    # Recap summary text
-    diff_total = df["Current Sales"].sum() - df["Prior Sales"].sum()
-    summary_lines = []
-    summary_lines.append(f"Hope everyone’s doing well! Here's your {agency_name} recap:\n")
-    if diff_total < 0:
-        summary_lines.append(f"We ended the period down ${abs(diff_total):,.0f} vs last year. Still some wins to celebrate.\n")
-    else:
-        summary_lines.append(f"We ended the period up ${abs(diff_total):,.0f} over last year — great momentum!\n")
-    summary_lines.append("\nTop dealers:")
-    for dealer, row in top_growth_dollars.iterrows():
-        summary_lines.append(f"- {dealer}: +${row['$ Growth']:,.0f}")
-    summary_lines.append("\nDealers who pulled back:")
-    for dealer, row in top_decline_dollars.iterrows():
-        summary_lines.append(f"- {dealer}: -${abs(row['$ Growth']):,.0f}")
-    summary_lines.append("""\n🔥 Product to plug: Rhyme Downlights. Sleek, simple, and a showroom favorite.
-    Let’s lean into wins, check in on our quiet ones, and light it up ⚡""")
-    summary_text = "\n".join(summary_lines)
-
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        workbook = writer.book
-        money_fmt = workbook.add_format({'num_format': '$#,##0'})
-        bold = workbook.add_format({'bold': True})
-        wrap_fmt = workbook.add_format({'text_wrap': True, 'valign': 'top'})
-
-        # Summary
-        df.to_excel(writer, index=False, sheet_name="Summary")
-        ws_summary = writer.sheets["Summary"]
-        for col_num, value in enumerate(df.columns):
-            ws_summary.set_column(col_num, col_num, 18, money_fmt if "Sales" in value else None)
-
-        # Auto Summary
-        ws_auto = workbook.add_worksheet("Auto Summary")
-        ws_auto.set_column("A:A", 100, wrap_fmt)
-        ws_auto.write("A1", summary_text)
-
-        # Deep Dive
-        deep = workbook.add_worksheet("Deep Dive")
-        deep.write("A1", "Best-Selling Product Categories", bold)
-        for i, (cat, val) in enumerate(category_sales.items()):
-            deep.write(i + 2, 0, cat)
-            deep.write(i + 2, 1, val, money_fmt)
-
-        deep.write("D1", "Top Dealers", bold)
-        for i, (name, val) in enumerate(top_customers.items()):
-            deep.write(i + 2, 3, name)
-            deep.write(i + 2, 4, val, money_fmt)
-
-        deep.write("G1", "Bottom Dealers", bold)
-        for i, (name, val) in enumerate(bottom_customers.items()):
-            deep.write(i + 2, 6, name)
-            deep.write(i + 2, 7, val, money_fmt)
-
-        deep.write("A20", "Client-Level Detail", bold)
-        for col_idx, col in enumerate(df.columns):
-            deep.write(21, col_idx, col, bold)
-        for row_idx, row in df.iterrows():
-            for col_idx, val in enumerate(row):
-                deep.write(22 + row_idx, col_idx, val, money_fmt if "Sales" in df.columns[col_idx] else None)
-        deep.autofilter(21, 0, 21 + len(df), len(df.columns) - 1)
-
-    
-        # Detailed Dashboard
-        dash = workbook.add_worksheet("Detailed Dashboard")
-        dash.write("A1", f"Sales Dashboard – Agency: {agency_name}", workbook.add_format({'bold': True, 'font_size': 14}))
-        dash.write("A2", "Reporting Period:", bold)
-        dash.write("B2", "01/01/2025 – 12/31/2025")
-
-        # Top Growth $ Dealers
-        dash.write("A4", "Top Growth ($)", bold)
-        for i, (cust, row) in enumerate(top_growth_dollars.iterrows(), start=5):
-            dash.write(i, 0, cust)
-            dash.write(i, 1, row["$ Growth"], money_fmt)
-
-        # Top Growth % Dealers
-        dash.write("D4", "Top Growth (%)", bold)
-        for i, (cust, row) in enumerate(top_growth_percent.iterrows(), start=5):
-            dash.write(i, 3, cust)
-            dash.write(i, 4, row["% Growth"], workbook.add_format({'num_format': '0.0"%"'}))
-
-        # Top Decline $ Dealers
-        dash.write("G4", "Top Decline ($)", bold)
-        for i, (cust, row) in enumerate(top_decline_dollars.iterrows(), start=5):
-            dash.write(i, 6, cust)
-            dash.write(i, 7, row["$ Growth"], money_fmt)
-
-        # Pie Chart: Top Product Categories
-        cat_start = 25
-        for i, (cat, val) in enumerate(category_sales.items()):
-            dash.write(cat_start + i, 0, cat)
-            dash.write(cat_start + i, 1, val)
-        pie_chart = workbook.add_chart({'type': 'pie'})
-        pie_chart.add_series({
-            'name': 'Top Product Categories',
-            'categories': ['Detailed Dashboard', cat_start, 0, cat_start + len(category_sales) - 1, 0],
-            'values':     ['Detailed Dashboard', cat_start, 1, cat_start + len(category_sales) - 1, 1],
-        })
-        pie_chart.set_title({'name': 'Top Product Categories'})
-        pie_chart.set_style(10)
-        dash.insert_chart("D25", pie_chart)
-
-        # Bar Chart: Sales by Year
-        sales_by_year = [
-            ["Goal", 300000],
-            ["Current", df["Current Sales"].sum()],
-            ["1 Year Ago", df["Prior Sales"].sum()],
-            ["2 Years Ago", df["Prior Sales"].sum() * 0.9]
-        ]
-        for i, (label, val) in enumerate(sales_by_year):
-            dash.write(45 + i, 0, label)
-            dash.write(45 + i, 1, val)
-        bar_chart = workbook.add_chart({'type': 'column'})
-        bar_chart.add_series({
-            'name': 'Sales by Year',
-            'categories': ['Detailed Dashboard', 45, 0, 48, 0],
-            'values': ['Detailed Dashboard', 45, 1, 48, 1],
-        })
-        bar_chart.set_title({'name': 'Sales by Year'})
-        bar_chart.set_style(11)
-        bar_chart.set_y_axis({'num_format': '$#,##0'})
-        dash.insert_chart("D45", bar_chart)
-
-        return output.getvalue()
-
-
-
-
-
-
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -278,12 +109,25 @@ st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY
 # st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
 # --- Phase 3: Advanced Excel Export by Rep Agency ---
 from io import BytesIO
+import xlsxwriter
 
-# Final integrated export logic
 selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
-if st.sidebar.button("📥 Download Full Excel Report"):
+if st.sidebar.button("📥 Download Excel Report"):
     export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
-    excel_data = generate_agency_report(export_df, selected_export_agency)
-    st.download_button("Download Report", data=excel_data,
-                      file_name=f"{selected_export_agency}_Proluxe_Report.xlsx",
-                      mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Sales Report")
+        workbook = writer.book
+        worksheet = writer.sheets["Sales Report"]
+        money_fmt = workbook.add_format({'num_format': '$#,##0'})
+        for col_num, value in enumerate(export_df.columns):
+            if "Sales" in value or "Budget" in value:
+                worksheet.set_column(col_num, col_num, 18, money_fmt)
+            else:
+                worksheet.set_column(col_num, col_num, 18)
+    st.download_button(
+        label="📥 Download Agency Excel Report",
+        data=output.getvalue(),
+        file_name=f"{selected_export_agency}_Sales_Report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
