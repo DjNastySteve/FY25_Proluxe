@@ -29,10 +29,7 @@ def load_data(file):
 
     return sales_df, mtd_df, rep_map
 
-uploaded_file = st.sidebar.file_uploader("📁 Upload FY25 Sales Excel File", type=["xlsx"])
-if not uploaded_file:
-    st.warning("Please upload the FY25.PLX.xlsx file to proceed.")
-    st.stop()
+sales_df, mtd_df, rep_map = load_data("FY25.PLX.xlsx")
 
 sales_df, mtd_df, rep_map = load_data(uploaded_file)
 
@@ -82,6 +79,7 @@ col1.metric("📦 Customers", f"{total_customers:,}")
 col2.metric("💰 FY25 Sales", f"${total_sales:,.2f}")
 col3.metric("🎯 FY25 Budget", f"${budget:,.2f}")
 col4.metric("📊 % to Goal", f"{percent_to_goal:.1f}%")
+st.progress(min(int(percent_to_goal), 100))
 
 # Top & Bottom Customers
 st.subheader("🏆 Top 10 Customers by Sales")
