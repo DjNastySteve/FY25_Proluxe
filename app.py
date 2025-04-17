@@ -26,7 +26,7 @@ def generate_agency_report(df, agency_name):
     # Recap summary text
     diff_total = df["Current Sales"].sum() - df["Prior Sales"].sum()
     summary_lines = []
-    summary_lines.append(f"Hope everyone’s doing well! Here's your {agency_name} recap:\n")
+    summary_lines.append(f"Hope everyone's doing well! Here's your {agency_name} recap:\n")
     if diff_total < 0:
         summary_lines.append(f"We ended the period down ${abs(diff_total):,.0f} vs last year. Still some wins to celebrate.\n")
     else:
@@ -37,15 +37,53 @@ def generate_agency_report(df, agency_name):
     summary_lines.append("\nDealers who pulled back:")
     for dealer, row in top_decline_dollars.iterrows():
         summary_lines.append(f"- {dealer}: -${abs(row['$ Growth']):,.0f}")
-    summary_lines.append("""\n🔥 Product to plug: Rhyme Downlights. Sleek, simple, and a showroom favorite.
-    Let’s lean into wins, check in on our quiet ones, and light it up ⚡""")
     summary_text = "\n".join(summary_lines)
 
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        ws_dashboard.set_column("A:A", 40)
+        ws_dashboard.set_column("B:C", 18, money_fmt)
+        
+        # Sales vs Goal
+        ws_dashboard.write("A1", "FY25 Sales", bold)
+        ws_dashboard.write("B1", total_sales, money_fmt)
+        ws_dashboard.write("A2", "FY25 Budget", bold)
+        ws_dashboard.write("B2", df["Budget"].sum(), money_fmt)
+        pct_to_goal = (total_sales / df["Budget"].sum()) if df["Budget"].sum() != 0 else 0
+        ws_dashboard.write("A3", "% to Goal", bold)
+        ws_dashboard.write("B3", pct_to_goal, writer.book.add_format({'num_format': '0.0%'}))
+        
+        # Top Growth ($)
+        ws_dashboard.write("D1", "Top Growth ($)", bold)
+        for i, (name, row) in enumerate(top_growth_dollars.iterrows()):
+            ws_dashboard.write(i + 2, 3, name)
+        ws_dashboard.write(i + 2, 4, row["$ Growth"], money_fmt)
+        
+        # Top Decline ($)
+        ws_dashboard.write("F1", "Top Decline ($)", bold)
+        for i, (name, row) in enumerate(top_decline_dollars.iterrows()):
+            ws_dashboard.write(i + 2, 5, name)
+        ws_dashboard.write(i + 2, 6, row["$ Growth"], money_fmt)
+        
+        # Pie Chart for Product Category Breakdown
+        pie_data_start = 10
+        for i, (cat, amt) in enumerate(category_sales.items()):
+            ws_dashboard.write(pie_data_start + i, 0, cat)
+        ws_dashboard.write(pie_data_start + i, 1, amt)
+        
+        pie_chart = writer.book.add_chart({'type': 'pie'})
+        pie_chart.add_series({
+        'categories': ['Detailed Dashboard', pie_data_start, 0, pie_data_start + len(category_sales) - 1, 0],
+        'values':     ['Detailed Dashboard', pie_data_start, 1, pie_data_start + len(category_sales) - 1, 1],
+        })
+        pie_chart.set_title({'name': 'Sales by Product Category'})
+        pie_chart.set_style(10)
+        ws_dashboard.insert_chart('D10', pie_chart, {'x_offset': 25, 'y_offset': 10})
+        ws_dashboard = writer.book.add_worksheet("Detailed Dashboard")
+        writer.sheets["Detailed Dashboard"] = ws_dashboard
         workbook = writer.book
-        money_fmt = workbook.add_format({'num_format': '$#,##0'})
-        bold = workbook.add_format({'bold': True})
-        wrap_fmt = workbook.add_format({'text_wrap': True, 'valign': 'top'})
+        money_fmt = writer.book.add_format({'num_format': '$#,##0'})
+        bold = writer.book.add_format({'bold': True})
+        wrap_fmt = writer.book.add_format({'text_wrap': True, 'valign': 'top'})
 
         # Summary
         df.to_excel(writer, index=False, sheet_name="Summary")
@@ -54,12 +92,12 @@ def generate_agency_report(df, agency_name):
             ws_summary.set_column(col_num, col_num, 18, money_fmt if "Sales" in value else None)
 
         # Auto Summary
-        ws_auto = workbook.add_worksheet("Auto Summary")
+        ws_auto = writer.book.add_worksheet("Auto Summary")
         ws_auto.set_column("A:A", 100, wrap_fmt)
         ws_auto.write("A1", summary_text)
 
         # Deep Dive
-        deep = workbook.add_worksheet("Deep Dive")
+        deep = writer.book.add_worksheet("Deep Dive")
         deep.write("A1", "Best-Selling Product Categories", bold)
         for i, (cat, val) in enumerate(category_sales.items()):
             deep.write(i + 2, 0, cat)
@@ -83,6 +121,7 @@ def generate_agency_report(df, agency_name):
                 deep.write(22 + row_idx, col_idx, val, money_fmt if "Sales" in df.columns[col_idx] else None)
         deep.autofilter(21, 0, 21 + len(df), len(df.columns) - 1)
 
+        summary_lines.append("🔥 Product to plug: Rhyme Downlights. Sleek, simple, and a showroom favorite. Let's lean into wins, check in on our quiet ones, and light it up ⚡")
     return output.getvalue()
 
 
@@ -207,7 +246,7 @@ if st.sidebar.button("📥 Download Excel Report"):
         export_df.to_excel(writer, index=False, sheet_name="Sales Report")
         workbook = writer.book
         worksheet = writer.sheets["Sales Report"]
-        money_fmt = workbook.add_format({'num_format': '$#,##0'})
+        money_fmt = writer.book.add_format({'num_format': '$#,##0'})
         for col_num, value in enumerate(export_df.columns):
             if "Sales" in value or "Budget" in value:
                 worksheet.set_column(col_num, col_num, 18, money_fmt)
@@ -219,3 +258,37 @@ if st.sidebar.button("📥 Download Excel Report"):
         file_name=f"{selected_export_agency}_Sales_Report.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+        # Detailed Dashboard
+
+
+    ws_dashboard = writer.book.add_worksheet("Detailed Dashboard")
+    writer.sheets["Detailed Dashboard"] = ws_dashboard
+    ws_dashboard.set_column("A:A", 40)
+    ws_dashboard.set_column("B:C", 18, money_fmt)
+    ws_dashboard.write("A1", "FY25 Sales", bold)
+    ws_dashboard.write("B1", total_sales, money_fmt)
+    ws_dashboard.write("A2", "FY25 Budget", bold)
+    ws_dashboard.write("B2", df["Budget"].sum(), money_fmt)
+    pct_to_goal = (total_sales / df["Budget"].sum()) if df["Budget"].sum() != 0 else 0
+    ws_dashboard.write("A3", "% to Goal", bold)
+    ws_dashboard.write("B3", pct_to_goal, writer.book.add_format({'num_format': '0.0%'}) )
+    ws_dashboard.write("D1", "Top Growth ($)", bold)
+    for i, (name, row) in enumerate(top_growth_dollars.iterrows()):
+        ws_dashboard.write(i + 2, 3, name)
+        ws_dashboard.write(i + 2, 4, row["$ Growth"], money_fmt)
+    ws_dashboard.write("F1", "Top Decline ($)", bold)
+    for i, (name, row) in enumerate(top_decline_dollars.iterrows()):
+        ws_dashboard.write(i + 2, 5, name)
+        ws_dashboard.write(i + 2, 6, row["$ Growth"], money_fmt)
+    pie_data_start = 10
+    for i, (cat, amt) in enumerate(category_sales.items()):
+        ws_dashboard.write(pie_data_start + i, 0, cat)
+        ws_dashboard.write(pie_data_start + i, 1, amt)
+    pie_chart = writer.book.add_chart({'type': 'pie'})
+    pie_chart.add_series({
+        'categories': ['Detailed Dashboard', pie_data_start, 0, pie_data_start + len(category_sales) - 1, 0],
+        'values':     ['Detailed Dashboard', pie_data_start, 1, pie_data_start + len(category_sales) - 1, 1],
+    })
+    pie_chart.set_title({'name': 'Sales by Product Category'})
+    pie_chart.set_style(10)
+    ws_dashboard.insert_chart('D10', pie_chart, {'x_offset': 25, 'y_offset': 10})
