@@ -78,15 +78,19 @@ else:
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
 
-# --- Phase 2: Top Agencies Bar Chart ---
+
+# --- Phase 2: Safe Top Agencies Bar Chart ---
 import plotly.express as px
-top_agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
-bar_fig = px.bar(top_agency_sales, x="Agency", y="Current Sales",
-                 title="Top 10 Agencies by FY25 Sales",
-                 color_discrete_sequence=['#a4896d'],
-                 labels={"Current Sales": "Sales ($)"})
-bar_fig.update_layout(title_x=0.5, plot_bgcolor='rgba(0,0,0,0)', yaxis_tickprefix='$')
-st.plotly_chart(bar_fig, use_container_width=True)
+if "Agency" in df_filtered.columns and "Current Sales" in df_filtered.columns and not df_filtered.empty:
+    top_agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
+    bar_fig = px.bar(top_agency_sales, x="Agency", y="Current Sales",
+                     title="Top 10 Agencies by FY25 Sales",
+                     color_discrete_sequence=['#a4896d'],
+                     labels={"Current Sales": "Sales ($)"})
+    bar_fig.update_layout(title_x=0.5, plot_bgcolor='rgba(0,0,0,0)', yaxis_tickprefix='$')
+    st.plotly_chart(bar_fig, use_container_width=True)
+else:
+    st.warning("Chart cannot be displayed – missing required data columns.")
 st.markdown("---")
 
 
