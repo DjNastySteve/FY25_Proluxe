@@ -99,7 +99,68 @@ def generate_agency_report(df, agency_name):
                 deep.write(22 + row_idx, col_idx, val, money_fmt if "Sales" in df.columns[col_idx] else None)
         deep.autofilter(21, 0, 21 + len(df), len(df.columns) - 1)
 
-    return output.getvalue()
+    
+        # Detailed Dashboard
+        dash = workbook.add_worksheet("Detailed Dashboard")
+        dash.write("A1", f"Sales Dashboard – Agency: {agency_name}", workbook.add_format({'bold': True, 'font_size': 14}))
+        dash.write("A2", "Reporting Period:", bold)
+        dash.write("B2", "01/01/2025 – 12/31/2025")
+
+        # Top Growth $ Dealers
+        dash.write("A4", "Top Growth ($)", bold)
+        for i, (cust, row) in enumerate(top_growth_dollars.iterrows(), start=5):
+            dash.write(i, 0, cust)
+            dash.write(i, 1, row["$ Growth"], money_fmt)
+
+        # Top Growth % Dealers
+        dash.write("D4", "Top Growth (%)", bold)
+        for i, (cust, row) in enumerate(top_growth_percent.iterrows(), start=5):
+            dash.write(i, 3, cust)
+            dash.write(i, 4, row["% Growth"], workbook.add_format({'num_format': '0.0"%"'}))
+
+        # Top Decline $ Dealers
+        dash.write("G4", "Top Decline ($)", bold)
+        for i, (cust, row) in enumerate(top_decline_dollars.iterrows(), start=5):
+            dash.write(i, 6, cust)
+            dash.write(i, 7, row["$ Growth"], money_fmt)
+
+        # Pie Chart: Top Product Categories
+        cat_start = 25
+        for i, (cat, val) in enumerate(category_sales.items()):
+            dash.write(cat_start + i, 0, cat)
+            dash.write(cat_start + i, 1, val)
+        pie_chart = workbook.add_chart({'type': 'pie'})
+        pie_chart.add_series({
+            'name': 'Top Product Categories',
+            'categories': ['Detailed Dashboard', cat_start, 0, cat_start + len(category_sales) - 1, 0],
+            'values':     ['Detailed Dashboard', cat_start, 1, cat_start + len(category_sales) - 1, 1],
+        })
+        pie_chart.set_title({'name': 'Top Product Categories'})
+        pie_chart.set_style(10)
+        dash.insert_chart("D25", pie_chart)
+
+        # Bar Chart: Sales by Year
+        sales_by_year = [
+            ["Goal", 300000],
+            ["Current", df["Current Sales"].sum()],
+            ["1 Year Ago", df["Prior Sales"].sum()],
+            ["2 Years Ago", df["Prior Sales"].sum() * 0.9]
+        ]
+        for i, (label, val) in enumerate(sales_by_year):
+            dash.write(45 + i, 0, label)
+            dash.write(45 + i, 1, val)
+        bar_chart = workbook.add_chart({'type': 'column'})
+        bar_chart.add_series({
+            'name': 'Sales by Year',
+            'categories': ['Detailed Dashboard', 45, 0, 48, 0],
+            'values': ['Detailed Dashboard', 45, 1, 48, 1],
+        })
+        bar_chart.set_title({'name': 'Sales by Year'})
+        bar_chart.set_style(11)
+        bar_chart.set_y_axis({'num_format': '$#,##0'})
+        dash.insert_chart("D45", bar_chart)
+
+        return output.getvalue()
 
 
 
