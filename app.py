@@ -12,22 +12,22 @@ territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake"
 @st.cache_data
 def load_data():
     sales_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Sales Data YTD")
-mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Monthly Goal Sales Data")
+    mtd_df = pd.read_excel("FY25.PLX.xlsx", sheet_name="Monthly Goal Sales Data")
 
-cole_reps = ['609', '617', '621', '623', '625', '626']
-jake_reps = ['601', '614', '616', '619', '620', '622', '627']
+    cole_reps = ['609', '617', '621', '623', '625', '626']
+    jake_reps = ['601', '614', '616', '619', '620', '622', '627']
 
-rep_map = pd.DataFrame({
-"REP": cole_reps + jake_reps + ['Home'],
-"Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
-})
+    rep_map = pd.DataFrame({
+        "REP": cole_reps + jake_reps + ['Home'],
+        "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+    })
 
-for df in [sales_df, mtd_df]:
-df.columns = df.columns.str.strip()
-df["Sales Rep"] = df["Sales Rep"].astype(str)
-df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
+    for df in [sales_df, mtd_df]:
+        df.columns = df.columns.str.strip()
+        df["Sales Rep"] = df["Sales Rep"].astype(str)
+        df["Current Sales"] = pd.to_numeric(df["Current Sales"], errors="coerce").fillna(0)
 
-return sales_df, mtd_df, rep_map
+    return sales_df, mtd_df, rep_map
 
 sales_df, mtd_df, rep_map = load_data()
 
