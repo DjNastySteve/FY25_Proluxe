@@ -31,7 +31,7 @@ def load_data(file):
 
 sales_df, mtd_df, rep_map = load_data("FY25.PLX.xlsx")
 
-sales_df, mtd_df, rep_map = load_data(uploaded_file)
+sales_df, mtd_df, rep_map = load_data("FY25.PLX.xlsx")
 
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
 df["Sales Rep"] = df["Sales Rep"].astype(str)
