@@ -54,17 +54,19 @@ df["Agency"] = df["Sales Rep"].map(rep_agency_mapping)
 if "Home" not in df["Rep Name"].unique():
     df.loc[df["Rep Name"].isin(["Cole", "Jake"]), "Rep Name"] = "Home"
 
-    agencies = sorted(df["Agency"].dropna().unique())
+agencies = sorted(df["Agency"].dropna().unique())
     selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
     df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
     df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
+
 if view_option == "MTD":
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
-# FIXED: orphaned else:
+else:
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
-    st.markdown(banner_html, unsafe_allow_html=True)
+st.markdown(banner_html, unsafe_allow_html=True)
+
 
     total_sales = df_filtered["Current Sales"].sum()
     budget = agency_budget_mapping.get(selected_agency, 0) if selected_agency != "All" else budgets.get(territory, 0)
