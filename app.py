@@ -20,7 +20,6 @@ def load_data():
     # Rep to name mapping
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
-rep_map = pd.DataFrame({
     "REP": cole_reps + jake_reps + ['Home'],
     "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
 })
@@ -50,11 +49,10 @@ sales_df, mtd_df, rep_map = load_data()
 # Choose MTD or YTD view
 view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
+selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
 df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
-df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
-
 # Define agency mapping
 rep_agency_mapping = {
     "601": "New Era", "627": "Phoenix", "609": "Morris-Tait", "614": "Access", "616": "Synapse",
@@ -66,14 +64,13 @@ df["Product Category"] = df["Category 1"]
 
 # Sidebar agency filter
 agencies = sorted(df["Agency"].dropna().unique())
-selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
 # Apply filters
 
 # Banner
 if view_option == "MTD":
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Month-To-Date</span> Performance</div>"
-# else:
+else:
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
 
