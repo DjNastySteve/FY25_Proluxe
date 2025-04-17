@@ -69,6 +69,14 @@ col2.metric("🎯 FY25 Budget", f"${7538702.63:,.2f}")
 col3.metric("📈 % to Goal", f"{(df_filtered['Current Sales'].sum() / 7538702.63) * 100:.1f}%")
 col4.metric("🧾 Total Customers", f"{df_filtered['Customer Name'].nunique()}")
 st.markdown("---")
+df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
+
+
+if view_option == "MTD":
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
+else:
+    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
+st.markdown(banner_html, unsafe_allow_html=True)
 
 # --- Phase 2: Top Agencies Bar Chart ---
 import plotly.express as px
@@ -80,14 +88,6 @@ bar_fig = px.bar(top_agency_sales, x="Agency", y="Current Sales",
 bar_fig.update_layout(title_x=0.5, plot_bgcolor='rgba(0,0,0,0)', yaxis_tickprefix='$')
 st.plotly_chart(bar_fig, use_container_width=True)
 st.markdown("---")
-df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
-
-
-if view_option == "MTD":
-    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
-else:
-    banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
-st.markdown(banner_html, unsafe_allow_html=True)
 
 
 total_sales = df_filtered["Current Sales"].sum()
