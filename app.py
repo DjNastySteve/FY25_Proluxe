@@ -6,6 +6,10 @@ import xlsxwriter
 from io import BytesIO
 import xlsxwriter
 
+
+from io import BytesIO
+import xlsxwriter
+
 def generate_agency_report(df, agency_name):
     output = BytesIO()
     workbook = None
@@ -88,6 +92,7 @@ def generate_agency_report(df, agency_name):
         deep.autofilter(21, 0, 21 + len(df), len(df.columns) - 1)
 
     return output.getvalue()
+
 
 
 
