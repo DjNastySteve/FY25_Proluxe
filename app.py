@@ -59,6 +59,16 @@ agencies = sorted(df["Agency"].dropna().unique())
 selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
+st.markdown("""
+<h1 style='background-color:#212221; color:#D9D8D6; padding:1rem; border-radius:10px;'>Proluxe Sales Dashboard</h1>""",
+unsafe_allow_html=True)
+
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("💰 FY25 Sales", f"${df_filtered['Current Sales'].sum():,.2f}")
+col2.metric("🎯 FY25 Budget", f"${7538702.63:,.2f}")
+col3.metric("📈 % to Goal", f"{(df_filtered['Current Sales'].sum() / 7538702.63) * 100:.1f}%")
+col4.metric("🧾 Total Customers", f"{df_filtered['Customer Name'].nunique()}")
+st.markdown("---")
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
 
@@ -106,17 +116,4 @@ st.subheader("📁 Export")
 csv_export = df_filtered.to_csv(index=False)
 st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
 
-# st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10)
-st.markdown(
-    "<h1 style='background-color:#212221; color:#D9D8D6; padding:1rem; border-radius:10px;'>Proluxe Sales Dashboard</h1>",
-    unsafe_allow_html=True
-)
-
-# KPI section
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("💰 FY25 Sales", f"${df_filtered['Current Sales'].sum():,.2f}")
-col2.metric("🎯 FY25 Budget", f"${7538702.63:,.2f}")
-col3.metric("📈 % to Goal", f"{(df_filtered['Current Sales'].sum() / 7538702.63) * 100:.1f}%")
-col4.metric("🧾 Total Customers", f"{df_filtered['Customer Name'].nunique()}")
-st.markdown("---")
-)
+# st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
