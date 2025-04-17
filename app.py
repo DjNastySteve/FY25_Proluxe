@@ -71,7 +71,7 @@ st.markdown(banner_html, unsafe_allow_html=True)
 total_sales = df_filtered["Current Sales"].sum()
 budget = 7538702.63
 percent_to_goal = total_sales / budget * 100 if budget > 0 else 0
-    total_customers = df_filtered["Customer Name"].nunique()
+total_customers = df_filtered["Customer Name"].nunique() if "Customer Name" in df_filtered.columns else 0
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("📦 Customers", f"{total_customers:,}")
