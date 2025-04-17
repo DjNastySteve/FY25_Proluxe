@@ -23,9 +23,9 @@ def load_data():
 rep_map = pd.DataFrame({
     "REP": cole_reps + jake_reps + ['Home'],
     "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
-    return sales_df, mtd_df, rep_map
+    "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
 })
-# Apply Sales Manager filter
+    return sales_df, mtd_df, rep_map
 if territory != "All":
     df_filtered = df[df["Rep Name"] == territory]
 else:
