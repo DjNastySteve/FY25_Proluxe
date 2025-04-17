@@ -20,9 +20,10 @@ def load_data():
     # Rep to name mapping
     cole_reps = ['609', '617', '621', '623', '625', '626']
     jake_reps = ['601', '614', '616', '619', '620', '622', '627']
-    rep_map = pd.DataFrame({
-
-df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
+rep_map = pd.DataFrame({
+    "REP": cole_reps + jake_reps + ['Home'],
+    "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
+})
 
 # Apply Sales Manager filter
 if territory != "All":
@@ -34,9 +35,6 @@ else:
 if selected_agency != "All":
     df_filtered = df_filtered[df_filtered["Agency"] == selected_agency]
 
-        "REP": cole_reps + jake_reps + ['Home'],
-        "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
-    })
 
     # Clean columns and parse types
     for df in [sales_df, mtd_df]:
@@ -54,6 +52,7 @@ view_option = st.sidebar.radio("📅 Select View", ["YTD", "MTD"])
 territory = st.sidebar.radio("📌 Select Sales Manager", ["All", "Cole", "Jake", "Proluxe"])
 
 df = mtd_df.copy() if view_option == "MTD" else sales_df.copy()
+df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
 df = df.merge(rep_map, left_on="Sales Rep", right_on="REP", how="left")
 
 # Define agency mapping
