@@ -111,26 +111,7 @@ st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY
 # --- Phase 3: Advanced Excel Export by Rep Agency ---
 from io import BytesIO
 
-selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
-if st.sidebar.button("📥 Download Excel Report"):
-    export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
-    output = BytesIO()
-        export_df.to_excel(writer, index=False, sheet_name="Sales Report")
-        workbook = writer.book
-        worksheet = writer.sheets["Sales Report"]
-        money_fmt = workbook.add_format({'num_format': '$#,##0'})
-        for col_num, value in enumerate(export_df.columns):
-            if "Sales" in value or "Budget" in value:
-                worksheet.set_column(col_num, col_num, 18, money_fmt)
-            else:
-                worksheet.set_column(col_num, col_num, 18)
-    st.download_button(
-        data=output.getvalue(),
-        file_name=f"{selected_export_agency}_Sales_Report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-# Final integrated Excel export logic
+# Final integrated export logic
 selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
 if st.sidebar.button("📥 Download Full Excel Report"):
     export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
