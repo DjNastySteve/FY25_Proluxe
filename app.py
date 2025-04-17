@@ -62,7 +62,7 @@ if "Home" not in df["Rep Name"].unique():
 
 if view_option == "MTD":
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#00FFAA;'>Month-To-Date</span> Performance</div>"
-    else:
+# FIXED: orphaned else:
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
     st.markdown(banner_html, unsafe_allow_html=True)
 
