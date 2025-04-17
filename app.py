@@ -63,7 +63,7 @@ df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filter
 # Banner
 if view_option == "MTD":
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Month-To-Date</span> Performance</div>"
-# else:
+else:
     banner_html = "<div style='background-color:#212221; padding:1em; border-radius:0.5em; color:#d9d8d6; font-size:18px;'>📅 <b>Now Viewing:</b> <span style='color:#d9d8d6;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
 
