@@ -162,5 +162,4 @@ if st.sidebar.button("📥 Export Excel Dashboard"):
     else:
         rep_data = df[df["Sales Rep"] == selected_export_rep]
         excel_buf = generate_dashboard_excel(rep_data, selected_export_rep)
-        st.download_button("📥 Download REP Dashboard", data=excel_buf.getvalue(), file_name=f"SalesRep_Dashboard_REP{selected_export_rep}.xlsx"df_mtd = excel_file.parse('MTD')
-)
+        st.download_button("📥 Download REP Dashboard", data=excel_buf.getvalue(), file_name=f"SalesRep_Dashboard_REP{selected_export_rep}.xlsx")
