@@ -59,16 +59,6 @@ agencies = sorted(df["Agency"].dropna().unique())
 selected_agency = st.sidebar.selectbox("🏢 Filter by Agency", ["All"] + agencies)
 
 df_filtered = df if territory == "All" else df[df["Rep Name"] == territory]
-st.markdown("""
-<h1 style='background-color:#212221; color:#D9D8D6; padding:1rem; border-radius:10px;'>Proluxe Sales Dashboard</h1>""",
-unsafe_allow_html=True)
-
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("💰 FY25 Sales", f"${df_filtered['Current Sales'].sum():,.2f}")
-col2.metric("🎯 FY25 Budget", f"${7538702.63:,.2f}")
-col3.metric("📈 % to Goal", f"{(df_filtered['Current Sales'].sum() / 7538702.63) * 100:.1f}%")
-col4.metric("🧾 Total Customers", f"{df_filtered['Customer Name'].nunique()}")
-st.markdown("---")
 df_filtered = df_filtered if selected_agency == "All" else df_filtered[df_filtered["Agency"] == selected_agency]
 
 
@@ -77,21 +67,6 @@ if view_option == "MTD":
 else:
     banner_html = "<div style='background-color:#111; padding:0.8em 1em; border-radius:0.5em; color:#DDD;'>📅 <b>Now Viewing:</b> <span style='color:#FFD700;'>Year-To-Date</span> Performance</div>"
 st.markdown(banner_html, unsafe_allow_html=True)
-
-
-# --- Phase 2: Safe Top Agencies Bar Chart ---
-import plotly.express as px
-if "Agency" in df_filtered.columns and "Current Sales" in df_filtered.columns and not df_filtered.empty:
-    top_agency_sales = df_filtered.groupby("Agency")["Current Sales"].sum().sort_values(ascending=False).head(10).reset_index()
-    bar_fig = px.bar(top_agency_sales, x="Agency", y="Current Sales",
-                     title="Top 10 Agencies by FY25 Sales",
-                     color_discrete_sequence=['#a4896d'],
-                     labels={"Current Sales": "Sales ($)"})
-    bar_fig.update_layout(title_x=0.5, plot_bgcolor='rgba(0,0,0,0)', yaxis_tickprefix='$')
-    st.plotly_chart(bar_fig, use_container_width=True)
-else:
-    st.warning("Chart cannot be displayed – missing required data columns.")
-st.markdown("---")
 
 
 total_sales = df_filtered["Current Sales"].sum()
@@ -132,3 +107,27 @@ csv_export = df_filtered.to_csv(index=False)
 st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY25_Sales.csv", "text/csv")
 
 # st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
+# --- Phase 3: Advanced Excel Export by Rep Agency ---
+from io import BytesIO
+import xlsxwriter
+
+selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
+if st.sidebar.button("📥 Download Excel Report"):
+    export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Sales Report")
+        workbook = writer.book
+        worksheet = writer.sheets["Sales Report"]
+        money_fmt = workbook.add_format({'num_format': '$#,##0'})
+        for col_num, value in enumerate(export_df.columns):
+            if "Sales" in value or "Budget" in value:
+                worksheet.set_column(col_num, col_num, 18, money_fmt)
+            else:
+                worksheet.set_column(col_num, col_num, 18)
+    st.download_button(
+        label="📥 Download Agency Excel Report",
+        data=output.getvalue(),
+        file_name=f"{selected_export_agency}_Sales_Report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
