@@ -1,4 +1,5 @@
 
+from agency_export_module import generate_agency_report
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -109,13 +110,11 @@ st.download_button("⬇ Download Filtered Data as CSV", csv_export, "Filtered_FY
 # st.dataframe(df[["Sales Rep", "Rep Name", "Agency"]].drop_duplicates().head(10))
 # --- Phase 3: Advanced Excel Export by Rep Agency ---
 from io import BytesIO
-import xlsxwriter
 
 selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
 if st.sidebar.button("📥 Download Excel Report"):
     export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         export_df.to_excel(writer, index=False, sheet_name="Sales Report")
         workbook = writer.book
         worksheet = writer.sheets["Sales Report"]
@@ -126,8 +125,16 @@ if st.sidebar.button("📥 Download Excel Report"):
             else:
                 worksheet.set_column(col_num, col_num, 18)
     st.download_button(
-        label="📥 Download Agency Excel Report",
         data=output.getvalue(),
         file_name=f"{selected_export_agency}_Sales_Report.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+# Final integrated Excel export logic
+selected_export_agency = st.sidebar.selectbox("Select Agency to Export", ["All"] + sorted(df_filtered["Agency"].dropna().unique()))
+if st.sidebar.button("📥 Download Full Excel Report"):
+    export_df = df_filtered if selected_export_agency == "All" else df_filtered[df_filtered["Agency"] == selected_export_agency]
+    excel_data = generate_agency_report(export_df, selected_export_agency)
+    st.download_button("Download Report", data=excel_data,
+                      file_name=f"{selected_export_agency}_Proluxe_Report.xlsx",
+                      mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
