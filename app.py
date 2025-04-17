@@ -23,7 +23,6 @@ def load_data():
 rep_map = pd.DataFrame({
     "REP": cole_reps + jake_reps + ['Home'],
     "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
-    "Rep Name": ["Cole"] * len(cole_reps) + ["Jake"] * len(jake_reps) + ["Proluxe"]
 })
     return sales_df, mtd_df, rep_map
 if territory != "All":
